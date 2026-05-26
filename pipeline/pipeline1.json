@@ -7,7 +7,14 @@
 				"type": "ForEach",
 				"state": "Inactive",
 				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "DataValidation",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
@@ -96,7 +103,14 @@
 				"type": "Validation",
 				"state": "Inactive",
 				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "Metadatavariable",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
@@ -127,7 +141,14 @@
 			{
 				"name": "Metadatavariable",
 				"type": "SetVariable",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "GithubMetadata",
+						"dependencyConditions": [
+							"Completed"
+						]
+					}
+				],
 				"policy": {
 					"secureOutput": false,
 					"secureInput": false
@@ -135,7 +156,10 @@
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "metadatavar",
-					"value": ""
+					"value": {
+						"value": "@activity('GithubMetadata').output",
+						"type": "Expression"
+					}
 				}
 			}
 		],
