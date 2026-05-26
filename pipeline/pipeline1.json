@@ -63,7 +63,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"file_name": {
-											"value": "@pipeline().parameters.p_array",
+											"value": "@item().file_name",
 											"type": "Expression"
 										}
 									}
@@ -72,7 +72,17 @@
 							"outputs": [
 								{
 									"referenceName": "ds_sink",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"file_name": {
+											"value": "@item().file_name",
+											"type": "Expression"
+										},
+										"folder_name": {
+											"value": "@item().folder_name",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
