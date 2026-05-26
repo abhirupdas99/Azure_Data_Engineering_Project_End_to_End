@@ -1,0 +1,30 @@
+{
+	"name": "ds_github",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "github_connection",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"file_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation",
+				"relativeUrl": {
+					"value": "https://raw.githubusercontent.com/abhirupdas99/Azure_Data_Engineering_Project_End_to_End/refs/heads/main/RawData_AND_Notebooks/@{dataset().file_name}",
+					"type": "Expression"
+				}
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
