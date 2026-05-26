@@ -58,8 +58,19 @@
 						"type": "DatasetReference"
 					}
 				]
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": []
 			}
 		],
+		"parameters": {
+			"p_array": {
+				"type": "array"
+			}
+		},
 		"annotations": []
 	}
 }
