@@ -1,0 +1,15 @@
+{
+	"name": "ADFNetflixAbhirup",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Enabled",
+			"editable": true
+		}
+	},
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "7ae4d802-82cb-4ba9-b01e-a54ea355f150",
+		"tenantId": "4dc3c1f3-ec60-47f3-8f1a-029ce25c0eac"
+	}
+}
