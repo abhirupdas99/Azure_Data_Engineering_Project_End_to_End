@@ -94,6 +94,8 @@
 			{
 				"name": "DataValidation",
 				"type": "Validation",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"userProperties": [],
 				"typeProperties": {
@@ -104,6 +106,33 @@
 					"timeout": "0.12:00:00",
 					"sleep": 10
 				}
+			},
+			{
+				"name": "GithubMetadata",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://github.com/abhirupdas99/Azure_Data_Engineering_Project_End_to_End/tree/main/RawData_AND_Notebooks"
+				}
+			},
+			{
+				"name": "Metadatavariable",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": []
 			}
 		],
 		"parameters": {
@@ -131,6 +160,11 @@
 						"file_name": "netflix_titles.csv"
 					}
 				]
+			}
+		},
+		"variables": {
+			"metadatavar": {
+				"type": "String"
 			}
 		},
 		"annotations": []
