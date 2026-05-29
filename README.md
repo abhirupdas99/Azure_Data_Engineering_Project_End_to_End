@@ -305,3 +305,10 @@ Run the Job . Now we have successfully scheduled the job
 Now we have all data in delta format in Silver Layer
 
 Step 18:
+
+For transportation from silver layer to gold layer we have created a delta pipeline at azure databricks workspace . This pipeline is responsible for transporting all data from silver layer to gold layer of Unity Catalog.
+
+A notebook is created for tasks to be followed at the delta pipeline
+the notebook is : 7_DLT_Notebook
+
+Once the delta pipeline runs then we have all tranformed data at the gold layer at Unity Catalog . This data now can be further sent to external visulization tools like tableau or powerbi using the connection file generated through azure marketplace.
