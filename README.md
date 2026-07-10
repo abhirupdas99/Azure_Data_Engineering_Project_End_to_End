@@ -312,3 +312,42 @@ A notebook is created for tasks to be followed at the delta pipeline
 the notebook is : 7_DLT_Notebook
 
 Once the delta pipeline runs then we have all tranformed data at the gold layer at Unity Catalog . This data now can be further sent to external visulization tools like tableau or powerbi using the connection file generated through azure marketplace.
+
+How the gold layer reaches Power BI
+Once the DLT pipeline promotes data from Silver to Gold inside Unity Catalog, the gold tables sit as governed Delta tables, queryable through a Databricks SQL Warehouse. The "connection file generated through Azure Marketplace" your README mentions is a .pbids file — Databricks' Partner Connect integration for Power BI generates this automatically. It's a small shortcut file that pre-fills the SQL Warehouse's server hostname, HTTP path, and target catalog/schema, so opening it in Power BI Desktop launches straight into the connector's authentication prompt instead of making you hunt down those values manually.
+By default, that connector brings the gold tables in as DirectQuery, not Import — every visual queries the warehouse live rather than pulling a static copy into Power BI's own engine. That keeps the dashboard synced to the gold layer without a refresh schedule, but it's also where the real constraints show up: once a report is built on a DirectQuery source you can't just flip it to Import, Top N-style visual filters aren't available the way they are in Import mode, and calculated columns are effectively off the table since they'd need to be materialized by re-querying the source on every interaction. That's why the workarounds were COUNTROWS()-based DAX measures standing in for calculated columns, and "Basic" filtering standing in for Top N wherever a dynamic ranked filter wasn't available.
+One thing worth confirming: the guide you shared describes building the model from five local CSV files via Get Data → Text/CSV — that's an Import-mode workflow, not DirectQuery. That reads like a separate, earlier version of this dashboard rather than the one wired live to the gold layer. Is the CSV-based guide an earlier prototype, or did the final dashboard also end up pulling from CSV exports instead of DirectQuery? Worth knowing for sure before it comes up in an interview answer, since the mechanics genuinely differ. Either way, the design decisions below — star schema, bridge tables, DAX layer, page structure — hold regardless of which connectivity mode is actually delivering the data, so here's the full spec:
+
+1. Data audit
+   Titles is the fact table — 6,236 rows, 13 columns. Four supporting tables are bridge/dimension tables: cast (44,311 rows), category/genres (13,670 rows), country (7,179 rows), directors (4,852 rows) — each many-to-many against Titles, since one show can have several cast members, genres, countries, or directors.
+   Issues found and fixed:
+
+\_rescued_data — 100% null, dropped entirely
+One corrupted row — release_year reading 80119194 and type reading "1944" (a clear column-shift in that record), dropped
+rating — "TV" had silently overwritten 4,981 real rating values; relabeled to "Unknown" since the true rating wasn't recoverable
+date_added — stored as text, converted to a proper Date type, decomposed into year_added / month_added / month_name
+show_id — text in Titles, integer in every bridge table; cast to Whole Number everywhere so joins actually resolve
+duration_minutes — populated for TV Shows too in the raw data; nulled out there since TV Shows should read off duration_seasons instead
+
+2. Power Query transformations
+   Load all 5 tables, rename the queries (Titles, Cast, Category, Country, Directors), apply the fixes above to Titles, and confirm show_id is Whole Number on the four bridge tables — they were otherwise already clean, no other transforms needed.
+3. Data model — star schema
+   Titles is the fact table; Cast, Category, Country, Directors are dimensions, each joined 1:Many to Titles on show_id. All four relationships use single-direction cross-filtering (Titles → bridge tables) — with genuinely many-to-many fields like cast or genre, bidirectional filtering would create ambiguity and double-count rows.
+4. DAX layer
+   A dedicated \_Measures table holds:
+
+Core KPIs: Total Titles, Total Movies, Total TV Shows, Movie % of catalog, Avg Movie Duration, Avg TV Show Seasons
+Time intelligence: YoY Growth % (current-year count vs. DATEADD(..., -1, YEAR))
+Ranking: Top Genre by Count via TOPN over the Category table
+
+5. Dashboard pages
+
+Executive Overview — KPI cards for total titles and the movie/TV split, a donut chart for that split, a Top-10-genre bar chart, a year-over-year line chart by content type, and a type slicer
+Content Deep Dive — a filled map of titles by country, a genre treemap, a ratings-by-type clustered bar, a country × type matrix, and a genre slicer
+Cast & Directors — Top-15 bar charts for cast and directors, a cast word cloud, a drill-through title table, and country/type slicers
+Time & Trends — an area chart of additions by year and type, a by-month column chart, a runtime-vs-release-year scatter plot, a YoY growth KPI card, and a year-range slicer
+
+6. Theme
+   A custom "Netflix Dark" theme — #141414 canvas, #E50914 primary red for chart series 1/KPI cards/headings, #2F2F2F visual card backgrounds, #B81D24 as a secondary accent, white text, #999999 for secondary labels. Borders off, data labels on, gridlines set to a subtle #333333, slicers synced across all four pages via View → Sync Slicers.
+7. Publish
+   Publish to a Power BI workspace, set up refresh (scheduled import refresh if the source is Import mode — DirectQuery stays live without one), and share via link, Teams/SharePoint embed, or exported PNG/PDF.
